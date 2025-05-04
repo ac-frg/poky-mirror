@@ -11,7 +11,7 @@ DEPENDS += "u-boot-tools-native dtc-native virtual/kernel"
 
 python () {
     image = d.getVar('INITRAMFS_IMAGE')
-    if image and not bb.utils.to_boolean(d.getVar('INITRAMFS_IMAGE_BUNDLE')):
+    if image:
         if d.getVar('INITRAMFS_MULTICONFIG'):
             mc = d.getVar('BB_CURRENT_MC')
             d.appendVarFlag('do_compile', 'mcdepends', ' mc:' + mc + ':${INITRAMFS_MULTICONFIG}:${INITRAMFS_IMAGE}:do_image_complete')
@@ -108,7 +108,7 @@ python do_compile() {
 
     # Prepare a ramdisk section.
     initramfs_image = d.getVar('INITRAMFS_IMAGE')
-    if initramfs_image and not oe.types.boolean(d.getVar("INITRAMFS_IMAGE_BUNDLE")):
+    if initramfs_image:
         # Find and use the first initramfs image archive type we find
         found = False
         for img in d.getVar("FIT_SUPPORTED_INITRAMFS_FSTYPES").split():
@@ -157,11 +157,9 @@ do_deploy() {
     install -m 0644 "${B}/fitImage" "$deploy_dir/fitImage"
     install -m 0644 "${B}/fit-image.its" "$deploy_dir/fit-image.its"
 
-    if [ "${INITRAMFS_IMAGE_BUNDLE}" != "1" ]; then
-        ln -snf fit-image.its "$deploy_dir/fitImage-its-${KERNEL_FIT_NAME}.its"
-        if [ -n "${KERNEL_FIT_LINK_NAME}" ] ; then
-            ln -snf fit-image.its "$deploy_dir/fitImage-its-${KERNEL_FIT_LINK_NAME}"
-        fi
+    ln -snf fit-image.its "$deploy_dir/fitImage-its-${KERNEL_FIT_NAME}.its"
+    if [ -n "${KERNEL_FIT_LINK_NAME}" ] ; then
+        ln -snf fit-image.its "$deploy_dir/fitImage-its-${KERNEL_FIT_LINK_NAME}"
     fi
 
     if [ -n "${INITRAMFS_IMAGE}" ]; then
@@ -170,11 +168,9 @@ do_deploy() {
             ln -snf fit-image.its "$deploy_dir/fitImage-its-${INITRAMFS_IMAGE_NAME}-${KERNEL_FIT_LINK_NAME}"
         fi
 
-        if [ "${INITRAMFS_IMAGE_BUNDLE}" != "1" ]; then
-            ln -snf fitImage "$deploy_dir/fitImage-${INITRAMFS_IMAGE_NAME}-${KERNEL_FIT_NAME}${KERNEL_FIT_BIN_EXT}"
-            if [ -n "${KERNEL_FIT_LINK_NAME}" ] ; then
-                ln -snf fitImage "$deploy_dir/fitImage-${INITRAMFS_IMAGE_NAME}-${KERNEL_FIT_LINK_NAME}"
-            fi
+        ln -snf fitImage "$deploy_dir/fitImage-${INITRAMFS_IMAGE_NAME}-${KERNEL_FIT_NAME}${KERNEL_FIT_BIN_EXT}"
+        if [ -n "${KERNEL_FIT_LINK_NAME}" ] ; then
+            ln -snf fitImage "$deploy_dir/fitImage-${INITRAMFS_IMAGE_NAME}-${KERNEL_FIT_LINK_NAME}"
         fi
     fi
 }
