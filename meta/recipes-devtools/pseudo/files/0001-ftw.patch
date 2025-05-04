@@ -1,0 +1,92 @@
+From: Mark Hatle <mark.hatle@kernel.crashing.org>
+Subject: [pseudo][PATCH v3 1/3] Move ftw and ftw64 to calling ntfw and nftw64
+Date: Sat,  3 May 2025 14:59:53 -0500
+
+From: Mark Hatle <mark.hatle@amd.com>
+
+The 4 functions are very similar to each other: nftw-nftw64 and ftw-ftw64 are
+identical to their pair, except for the stat struct they use (stat vs stat64).
+
+nftw is a "superset" of ftw: nftw is backwards compatible with ftw, but it
+also accepts a number of extra flags to modify its behavior.
+
+Since all the 4 functions are so similar, the same codebase is used to
+implement all (which is also fairly similar to their implementation in
+glibc).
+
+[1]: https://linux.die.net/man/3/nftw
+
+Re-implemented, but based on the ideas from Gyorgy Sarvari <skandigraun@gmail.com>
+
+Signed-off-by: Mark Hatle <mark.hatle@amd.com>
+---
+ guts/README              |  4 ++--
+ ports/linux/guts/ftw64.c |  9 ++++++++-
+ ports/unix/guts/ftw.c    | 10 +++++++++-
+ 3 files changed, 19 insertions(+), 4 deletions(-)
+
+Upstream-Status: Submitted
+
+Index: git/guts/README
+===================================================================
+--- git.orig/guts/README
++++ git/guts/README
+@@ -54,6 +54,8 @@ other functions:
+ 	__xmknod:		__xmknodat
+ 	__xstat64:		__fxstatat64
+ 	__xstat:		__fxstatat
++	ftw:			nftw
++	ftw64:			nftw64
+ 
+ The following functions are full implementations:
+ 
+@@ -129,8 +131,6 @@ calling the underlying routine.
+ 	eaccess
+ 	euidaccess
+ 	fts_open
+-	ftw64
+-	ftw
+ 	glob64
+ 	glob
+ 	lutimes
+Index: git/ports/linux/guts/ftw64.c
+===================================================================
+--- git.orig/ports/linux/guts/ftw64.c
++++ git/ports/linux/guts/ftw64.c
+@@ -9,7 +9,14 @@
+  *	int rc = -1;
+  */
+ 
+-	rc = real_ftw64(path, fn, nopenfd);
++	// 1. Set the flag argument to 0, just like glibc does.
++	// 2. The difference between ftw and nftw callback
++	//    is only the last parameter: struct FTW is only used
++	//    by nftw(), and it is missing from ftw().
++	//    However since otherwise the stacklayout for the
++	//    functions is the same, this cast should work just the
++	//    way we want it. This is also borrowed from glibc.
++	rc = wrap_nftw64(path, (void *)fn, nopenfd, 0);
+ 
+ /*	return rc;
+  * }
+Index: git/ports/unix/guts/ftw.c
+===================================================================
+--- git.orig/ports/unix/guts/ftw.c
++++ git/ports/unix/guts/ftw.c
+@@ -9,7 +9,15 @@
+  *	int rc = -1;
+  */
+ 
+-	rc = real_ftw(path, fn, nopenfd);
++	// 1. Set the flag argument to 0, just like glibc does.
++	// 2. The difference between ftw and nftw callback
++	//    is only the last parameter: struct FTW is only used
++	//    by nftw(), and it is missing from ftw().
++	//    However since otherwise the stacklayout for the
++	//    functions is the same, this cast should work just the
++	//    way we want it. This is also borrowed from glibc.
++
++	rc = wrap_nftw(path, (void *)fn, nopenfd, 0);
+ 
+ /*	return rc;
+  * }

@@ -3,6 +3,8 @@ require pseudo.inc
 SRC_URI = "git://git.yoctoproject.org/pseudo;branch=master;protocol=https \
            file://0001-configure-Prune-PIE-flags.patch \
            file://glibc238.patch \
+           file://0001-ftw.patch \
+           file://0001-nftw.patch \
            file://fallback-passwd \
            file://fallback-group \
            "
