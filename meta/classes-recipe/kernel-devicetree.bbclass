@@ -88,6 +88,10 @@ do_install:append() {
 			dtb=$dtb_base_name.$dtb_ext
 		fi
 		install -Dm 0644 $dtb_path ${D}/${KERNEL_DTBDEST}/$dtb
+
+		# Provide the DTBs also to other recipes
+		install -d ${D}/sysroot-only
+		install -Dm 0644 $dtb_path ${D}/sysroot-only/$dtb
 	done
 }
 
