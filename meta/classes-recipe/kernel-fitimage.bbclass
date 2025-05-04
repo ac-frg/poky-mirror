@@ -731,7 +731,6 @@ do_assemble_fitimage() {
 
 addtask assemble_fitimage before do_install after do_compile
 
-SYSROOT_DIRS:append = " /sysroot-only"
 do_install:append() {
 	if echo ${KERNEL_IMAGETYPES} | grep -wq "fitImage" && \
 		[ "${UBOOT_SIGN_ENABLE}" = "1" ]; then
